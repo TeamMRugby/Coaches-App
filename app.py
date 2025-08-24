@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -49,8 +48,6 @@ page = st.sidebar.radio("Navigate", ["Dashboard","Selection & Availability","Pla
 def name(row):
     return f"{row.get('first_name','')} {row.get('last_name','')}".strip()
 
-
-
 def plot_rugby_pitch(ax, length=100, width=70, line="#000000", turf="#FFFFFF", accent="#FFCC33"):
     # Club palette
     RED = KLR_RED
@@ -79,7 +76,6 @@ def plot_rugby_pitch(ax, length=100, width=70, line="#000000", turf="#FFFFFF", a
 
     ax.set_xticks([]); ax.set_yticks([])
     ax.set_aspect('equal', adjustable='box')
-
 
 if page == "Dashboard":
     st.header("🏉 KLRUFC Coaching Hub")
@@ -225,8 +221,7 @@ elif page == "Video & Tracking":
             if not tr.empty:
                 tr = tr.merge(players[['player_id','first_name','last_name','shirt_number']], on='player_id', how='left')
             st.dataframe(tr, use_container_width=True, height=300)
-    
-else:
+    else:
         # --- Timeline player controls ---
         st.subheader("Timeline Controls")
         max_time = int(tracking['time_s'].max()) if not tracking.empty else 120
@@ -245,115 +240,115 @@ else:
         with colA:
             st.write("Draw or click to place players on the pitch at a given time.")
             
-# --- Timeline controls ---
-if "time_s" not in st.session_state: st.session_state.time_s = 0
-if "playing" not in st.session_state: st.session_state.playing = False
-if "play_speed" not in st.session_state: st.session_state.play_speed = 1.0
+        # --- Timeline controls ---
+        if "time_s" not in st.session_state: st.session_state.time_s = 0
+        if "playing" not in st.session_state: st.session_state.playing = False
+        if "play_speed" not in st.session_state: st.session_state.play_speed = 1.0
 
-# Determine timeline bounds from tracking/events
-t_min, t_max = 0, 0
-if TRACKING_CSV.exists():
-    _tr_all = pd.read_csv(TRACKING_CSV)
-    if not _tr_all.empty:
-        t_min = int(_tr_all['time_s'].min())
-        t_max = int(_tr_all['time_s'].max())
-if EVENTS_CSV.exists():
-    _ev_all = pd.read_csv(EVENTS_CSV)
-    if not _ev_all.empty:
-        t_min = min(t_min, int(_ev_all['time_s'].min()))
-        t_max = max(t_max, int(_ev_all['time_s'].max()))
+        # Determine timeline bounds from tracking/events
+        t_min, t_max = 0, 0
+        if TRACKING_CSV.exists():
+            _tr_all = pd.read_csv(TRACKING_CSV)
+            if not _tr_all.empty:
+                t_min = int(_tr_all['time_s'].min())
+                t_max = int(_tr_all['time_s'].max())
+        if EVENTS_CSV.exists():
+            _ev_all = pd.read_csv(EVENTS_CSV)
+            if not _ev_all.empty:
+                t_min = min(t_min, int(_ev_all['time_s'].min()))
+                t_max = max(t_max, int(_ev_all['time_s'].max()))
 
-c_ctrl1, c_ctrl2, c_ctrl3, c_ctrl4, c_ctrl5 = st.columns([1,1,1,2,6])
-with c_ctrl1:
-    if st.button("⏮️ -1s"):
-        st.session_state.time_s = max(t_min, st.session_state.time_s - 1)
-with c_ctrl2:
-    if st.button("⏭️ +1s"):
-        st.session_state.time_s = min(t_max, st.session_state.time_s + 1)
-with c_ctrl3:
-    if st.session_state.playing:
-        if st.button("⏸️ Pause"):
-            st.session_state.playing = False
-    else:
-        if st.button("▶️ Play"):
-            st.session_state.playing = True
-with c_ctrl4:
-    st.session_state.play_speed = st.selectbox("Speed", ["0.5x","1x","2x"], index=1, label_visibility="collapsed")
-with c_ctrl5:
-    st.session_state.time_s = st.slider("Time (s)", min_value=int(t_min), max_value=int(max(t_max, t_min+1)), value=int(st.session_state.time_s), step=1)
+        c_ctrl1, c_ctrl2, c_ctrl3, c_ctrl4, c_ctrl5 = st.columns([1,1,1,2,6])
+        with c_ctrl1:
+            if st.button("⏮️ -1s"):
+                st.session_state.time_s = max(t_min, st.session_state.time_s - 1)
+        with c_ctrl2:
+            if st.button("⏭️ +1s"):
+                st.session_state.time_s = min(t_max, st.session_state.time_s + 1)
+        with c_ctrl3:
+            if st.session_state.playing:
+                if st.button("⏸️ Pause"):
+                    st.session_state.playing = False
+            else:
+                if st.button("▶️ Play"):
+                    st.session_state.playing = True
+        with c_ctrl4:
+            st.session_state.play_speed = st.selectbox("Speed", ["0.5x","1x","2x"], index=1, label_visibility="collapsed")
+        with c_ctrl5:
+            st.session_state.time_s = st.slider("Time (s)", min_value=int(t_min), max_value=int(max(t_max, t_min+1)), value=int(st.session_state.time_s), step=1)
 
-# Auto-advance while playing
-if st.session_state.playing:
-    import time
-    speed = {"0.5x":2.0,"1x":1.0,"2x":0.5}[st.session_state.play_speed]
-    time.sleep(0.4 * speed)
-    st.session_state.time_s = int(min(t_max, st.session_state.time_s + 1))
-    st.experimental_rerun()
+        # Auto-advance while playing
+        if st.session_state.playing:
+            import time
+            speed = {"0.5x":2.0,"1x":1.0,"2x":0.5}[st.session_state.play_speed]
+            time.sleep(0.4 * speed)
+            st.session_state.time_s = int(min(t_max, st.session_state.time_s + 1))
+            st.experimental_rerun()
 
-time_s = int(st.session_state.time_s)
+        time_s = int(st.session_state.time_s)
 
-fig, ax = plt.subplots(figsize=(8,5))
-plot_rugby_pitch(ax)
-st.pyplot(fig, use_container_width=True)
-st.caption("Below: use the canvas to drop circles at player locations, then map them to names and save to tracking.")
-# Overlay saved positions at this time
-            if TRACKING_CSV.exists():
-                tr = pd.read_csv(TRACKING_CSV)
-                snap = tr[(tr['time_s']==time_s) & (tr['fixture_id']==1)]
-                if not snap.empty:
-                    snap = snap.merge(players[['player_id','first_name','last_name','shirt_number']], on='player_id', how='left')
-                    fig2, ax2 = plt.subplots(figsize=(8,5))
-                    plot_rugby_pitch(ax2)
-                    
-                    for _, r in snap.iterrows():
-                        ax2.scatter(r['x_pct'], r['y_pct'], s=800, marker='o', color="#C8102E", edgecolors="#000000", linewidth=2, zorder=2)
-                        num = str(r.get('shirt_number') or "")
-                        label = num if num else (str(r['first_name'])[0] + str(r['last_name'])[0])
-                        ax2.text(r['x_pct'], r['y_pct'], label, color="#FFFFFF", weight="bold",
-                                 fontsize=12, ha="center", va="center", zorder=3)
+        fig, ax = plt.subplots(figsize=(8,5))
+        plot_rugby_pitch(ax)
+        st.pyplot(fig, use_container_width=True)
+        st.caption("Below: use the canvas to drop circles at player locations, then map them to names and save to tracking.")
+        # Overlay saved positions at this time
+        if TRACKING_CSV.exists():
+            tr = pd.read_csv(TRACKING_CSV)
+            snap = tr[(tr['time_s']==time_s) & (tr['fixture_id']==1)]
+            if not snap.empty:
+                snap = snap.merge(players[['player_id','first_name','last_name','shirt_number']], on='player_id', how='left')
+                fig2, ax2 = plt.subplots(figsize=(8,5))
+                plot_rugby_pitch(ax2)
+                
+                for _, r in snap.iterrows():
+                    ax2.scatter(r['x_pct'], r['y_pct'], s=800, marker='o', color="#C8102E", edgecolors="#000000", linewidth=2, zorder=2)
+                    num = str(r.get('shirt_number') or "")
+                    label = num if num else (str(r['first_name'])[0] + str(r['last_name'])[0])
+                    ax2.text(r['x_pct'], r['y_pct'], label, color="#FFFFFF", weight="bold",
+                             fontsize=12, ha="center", va="center", zorder=3)
 
-                                        # Overlay arrows for events near this time
-                    if EVENTS_CSV.exists():
-                        try:
-                            ev = pd.read_csv(EVENTS_CSV)
-                            # consider events within +/- 2s of selected time
-                            evw = ev[(ev['fixture_id']==1) & (ev['time_s'].between(time_s-2, time_s+2))]
-                            if not evw.empty:
-                                # Need coordinates for involved players from 'snap'
-                                coords = {int(r['player_id']): (float(r['x_pct']), float(r['y_pct'])) for _, r in snap.dropna(subset=['player_id']).iterrows()}
-                                for _, e in evw.iterrows():
-                                    if str(e['event']).lower() == 'pass':
-                                        # Find a 'target' by next row with same time (very simple heuristic)
-                                        # or nearest teammate in snapshot
-                                        src = int(e['player_id']) if not pd.isna(e['player_id']) else None
-                                        if src in coords:
-                                            # nearest other point
-                                            sx, sy = coords[src]
-                                            tx, ty, bestd = None, None, 1e9
-                                            for pid,(x,y) in coords.items():
-                                                if pid == src: continue
-                                                d = (x-sx)**2 + (y-sy)**2
-                                                if d < bestd:
-                                                    bestd, (tx,ty) = d, (x,y)
-                                            if tx is not None:
-                                                ax2.arrow(sx, sy, tx-sx, ty-sy, width=0.1, head_width=2.5, head_length=2.5, length_includes_head=True, color=KLR_BLACK, alpha=0.8, zorder=2)
-                                    elif str(e['event']).lower() == 'linebreak':
-                                        src = int(e['player_id']) if not pd.isna(e['player_id']) else None
-                                        if src in coords:
-                                            sx, sy = coords[src]
-                                            ax2.arrow(sx, sy, 8, 0, width=0.1, head_width=2.5, head_length=2.5, length_includes_head=True, color=KLR_GOLD, alpha=0.9, zorder=2)
-                        except Exception as _:
-                            pass
-                    st.pyplot(fig2, use_container_width=True)
+                # Overlay arrows for events near this time
+                if EVENTS_CSV.exists():
+                    try:
+                        ev = pd.read_csv(EVENTS_CSV)
+                        # consider events within +/- 2s of selected time
+                        evw = ev[(ev['fixture_id']==1) & (ev['time_s'].between(time_s-2, time_s+2))]
+                        if not evw.empty:
+                            # Need coordinates for involved players from 'snap'
+                            coords = {int(r['player_id']): (float(r['x_pct']), float(r['y_pct'])) for _, r in snap.dropna(subset=['player_id']).iterrows()}
+                            for _, e in evw.iterrows():
+                                if str(e['event']).lower() == 'pass':
+                                    # Find a 'target' by next row with same time (very simple heuristic)
+                                    # or nearest teammate in snapshot
+                                    src = int(e['player_id']) if not pd.isna(e['player_id']) else None
+                                    if src in coords:
+                                        # nearest other point
+                                        sx, sy = coords[src]
+                                        tx, ty, bestd = None, None, 1e9
+                                        for pid,(x,y) in coords.items():
+                                            if pid == src: continue
+                                            d = (x-sx)**2 + (y-sy)**2
+                                            if d < bestd:
+                                                bestd, (tx,ty) = d, (x,y)
+                                        if tx is not None:
+                                            ax2.arrow(sx, sy, tx-sx, ty-sy, width=0.1, head_width=2.5, head_length=2.5, length_includes_head=True, color=KLR_BLACK, alpha=0.8, zorder=2)
+                                elif str(e['event']).lower() == 'linebreak':
+                                    src = int(e['player_id']) if not pd.isna(e['player_id']) else None
+                                    if src in coords:
+                                        sx, sy = coords[src]
+                                        ax2.arrow(sx, sy, 8, 0, width=0.1, head_width=2.5, head_length=2.5, length_includes_head=True, color=KLR_GOLD, alpha=0.9, zorder=2)
+                    except Exception as _:
+                        pass
+                st.pyplot(fig2, use_container_width=True)
 
-            canvas_res = st_canvas(
-                fill_color="rgba(0, 84, 60, 0.3)",
-                stroke_width=2,
-                background_color="#e8f1ed",
-                height=350,
-                drawing_mode="circle",
-                key="pitch_canvas"
-            )
+        canvas_res = st_canvas(
+            fill_color="rgba(0, 84, 60, 0.3)",
+            stroke_width=2,
+            background_color="#e8f1ed",
+            height=350,
+            drawing_mode="circle",
+            key="pitch_canvas"
+        )
         with colB:
             st.write("Map drawn markers to players")
             # Show events at current time window
