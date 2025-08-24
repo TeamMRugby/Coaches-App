@@ -1,0 +1,8 @@
+streamlit>=1.36
+pandas>=2.2
+openpyxl
+matplotlib
+pyyaml
+streamlit-authenticator
+
+streamlit-drawable-canvas
