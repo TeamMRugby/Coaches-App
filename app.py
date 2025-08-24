@@ -292,11 +292,11 @@ if st.session_state.playing:
 
 time_s = int(st.session_state.time_s)
 
-            fig, ax = plt.subplots(figsize=(8,5))
-            plot_rugby_pitch(ax)
-            st.pyplot(fig, use_container_width=True)
-            st.caption("Below: use the canvas to drop circles at player locations, then map them to names and save to tracking.")
-            # Overlay saved positions at this time
+fig, ax = plt.subplots(figsize=(8,5))
+plot_rugby_pitch(ax)
+st.pyplot(fig, use_container_width=True)
+st.caption("Below: use the canvas to drop circles at player locations, then map them to names and save to tracking.")
+# Overlay saved positions at this time
             if TRACKING_CSV.exists():
                 tr = pd.read_csv(TRACKING_CSV)
                 snap = tr[(tr['time_s']==time_s) & (tr['fixture_id']==1)]
